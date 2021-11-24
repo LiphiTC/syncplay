@@ -41,7 +41,8 @@ def main():
         args.max_chat_message_length,
         args.max_username_length,
         args.stats_db_file,
-        args.tls
+        args.tls,
+        args.admins
     )
     endpoint6 = TCP6ServerEndpoint(reactor, int(args.port))
     endpoint6.listen(factory).addCallbacks(isListening6, failed6)
