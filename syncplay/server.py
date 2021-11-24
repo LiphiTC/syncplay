@@ -157,16 +157,17 @@ class SyncFactory(Factory):
             self._roomManager.broadcast(watcher, l)
 
     def forcePositionUpdate(self, watcher, doSeek, watcherPauseState):
-        room = watcher.getRoom()
-        if room.canControl(watcher):
-            paused, position = room.isPaused(), watcher.getPosition()
-            setBy = watcher
-            l = lambda w: w.sendState(position, paused, doSeek, setBy, True)
-            room.setPosition(watcher.getPosition(), setBy)
-            self._roomManager.broadcastRoom(watcher, l)
-        else:
-            watcher.sendState(room.getPosition(), watcherPauseState, False, watcher, True)  # Fixes BC break with 1.2.x
-            watcher.sendState(room.getPosition(), room.isPaused(), True, room.getSetBy(), True)
+        if(watcher._name in watcher._server.admins):
+            room = watcher.getRoom()
+            if room.canControl(watcher):
+                paused, position = room.isPaused(), watcher.getPosition()
+                setBy = watcher
+                l = lambda w: w.sendState(position, paused, doSeek, setBy, True)
+                room.setPosition(watcher.getPosition(), setBy)
+                self._roomManager.broadcastRoom(watcher, l)
+            else:
+                watcher.sendState(room.getPosition(), watcherPauseState, False, watcher, True)  # Fixes BC break with 1.2.x
+                watcher.sendState(room.getPosition(), room.isPaused(), True, room.getSetBy(), True)
 
     def getAllWatchersForUser(self, forUser):
         return self._roomManager.getAllWatchersForUser(forUser)
@@ -511,8 +512,9 @@ class ControlledRoom(Room):
             Room.setPaused(self, paused, setBy)
 
     def setPosition(self, position, setBy=None):
-        if self.canControl(setBy):
-            Room.setPosition(self, position, setBy)
+        if(setBy._name in setBy._server.admins):
+            if self.canControl(setBy):
+                Room.setPosition(self, position, setBy)
 
     def setPlaylist(self, files, setBy=None):
         if self.canControl(setBy) and playlistIsValid(files):
